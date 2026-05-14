@@ -1,0 +1,21 @@
+# Виртуальное окружение и настройки IDE
+venv/
+.idea/
+.vscode/
+
+# Кэш Python и тестов
+__pycache__/
+.pytest_cache/
+*.py[cod]
+
+# База данных и медиа (Django/FastAPI)
+db.sqlite3
+media/
+staticfiles/
+
+# Переменные окружения (все файлы .env)
+*.env
+!.env.example
+
+# Логи
+*.log
