@@ -29,6 +29,10 @@ class Building(models.Model):
 
     address = models.CharField(max_length=255, verbose_name="Адрес")
 
+    class Meta:
+        verbose_name = "Дом"
+        verbose_name_plural = "Дома"
+
     def __str__(self):
         return self.address
 
@@ -40,6 +44,10 @@ class Apartment(models.Model):
         Building, on_delete=models.CASCADE, related_name="apartments"
     )
     number = models.CharField(max_length=10, verbose_name="Номер квартиры")
+
+    class Meta:
+        verbose_name = "Квартира"
+        verbose_name_plural = "Квартиры"
 
     def __str__(self):
         return f"{self.building.address}, кв. {self.number}"
@@ -58,6 +66,10 @@ class ResidentProfile(models.Model):
         Apartment, on_delete=models.SET_NULL, null=True, verbose_name="Квартира"
     )
 
+    class Meta:
+        verbose_name = "Житель"
+        verbose_name_plural = "Жители"
+
     def __str__(self):
         return f"Профиль жителя: {self.user.username}"
 
@@ -70,6 +82,10 @@ class EmployeeProfile(models.Model):
     )
     position = models.CharField(max_length=100, verbose_name="Должность")
     department = models.CharField(max_length=100, verbose_name="Отдел")
+
+    class Meta:
+        verbose_name = "Сотрудник"
+        verbose_name_plural = "Сотрудники"
 
     def __str__(self):
         return f"Профиль сотрудника: {self.user.username}"
