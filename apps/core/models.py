@@ -1,3 +1,4 @@
+import uuid
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils.translation import gettext_lazy as _
@@ -10,9 +11,8 @@ class Role(models.TextChoices):
 
 
 class User(AbstractUser):
-    """
-    Базовая модель пользователя.
-    """
+    # Используем UUID для легкого перехода на микросервисы в будущем
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
     role = models.CharField(
         max_length=20, choices=Role.choices, default=Role.RESIDENT, verbose_name="Роль"
@@ -20,10 +20,13 @@ class User(AbstractUser):
     phone = models.CharField(
         max_length=15,
         blank=True,
-        null=True,  # добавил null=True
+        null=True,
         verbose_name="Телефон",
     )
     full_name = models.CharField(max_length=255, blank=True, verbose_name="ФИО")
+
+    email = models.EmailField(_("email address"), unique=True) 
+    REQUIRED_FIELDS = ["email", "full_name"]
 
     class Meta:
         verbose_name = "Пользователь"
@@ -34,8 +37,7 @@ class User(AbstractUser):
 
 
 class Building(models.Model):
-    """Модель дома"""
-
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     address = models.CharField(max_length=255, verbose_name="Адрес")
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -49,8 +51,7 @@ class Building(models.Model):
 
 
 class Apartment(models.Model):
-    """Модель квартиры"""
-
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     building = models.ForeignKey(
         Building,
         on_delete=models.CASCADE,
@@ -62,7 +63,7 @@ class Apartment(models.Model):
     class Meta:
         verbose_name = "Квартира"
         verbose_name_plural = "Квартиры"
-        unique_together = ("building", "number")  # важно!
+        unique_together = ("building", "number")
         ordering = ["building", "number"]
 
     def __str__(self):
@@ -88,9 +89,6 @@ class ResidentProfile(models.Model):
         verbose_name = "Профиль жителя"
         verbose_name_plural = "Профили жителей"
 
-    def __str__(self):
-        return f"Житель: {self.user.get_full_name() or self.user.username}"
-
 
 class EmployeeProfile(models.Model):
     user = models.OneToOneField(
@@ -101,10 +99,11 @@ class EmployeeProfile(models.Model):
     )
     position = models.CharField(max_length=100, verbose_name="Должность")
     department = models.CharField(max_length=100, blank=True, verbose_name="Отдел")
+    # Для мастеров можно добавить специализацию
+    is_active_worker = models.BooleanField(
+        default=True, verbose_name="Доступен для заявок"
+    )
 
     class Meta:
         verbose_name = "Профиль сотрудника"
         verbose_name_plural = "Профили сотрудников"
-
-    def __str__(self):
-        return f"{self.user} — {self.position}"

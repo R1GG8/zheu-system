@@ -69,75 +69,152 @@ title: Class Diagram - Система ЖЭУ
 classDiagram
     direction TB
 
-    %% ==================== Пользователи ====================
+    %% ==================== ENUMS ====================
+    class UserRole {
+        <<enumeration>>
+        RESIDENT
+        DISPATCHER
+        MASTER
+    }
+
+    class ApplicationStatus {
+        <<enumeration>>
+        NEW
+        IN_PROGRESS
+        PENDING_PARTS
+        COMPLETED
+        CANCELLED
+    }
+
+    class ServiceType {
+        <<enumeration>>
+        PLUMBER
+        ELECTRICIAN
+        OTHER
+    }
+
+    %% ==================== CORE / USERS ====================
     class User {
-        + id : UUID
-        + username : String
-        + email : String
-        + phone : String
-        + role : UserRole
-        + apartment_number : String
-        + full_name : String
-        + is_active : Boolean
+        + UUID id
+        + String phone_number
+        + String email
+        + String password
+        + UserRole role
+        + String full_name
+        + Boolean is_active
+        + DateTime date_joined
+        + login()
+        + get_notifications()
     }
 
-    class Resident {
-        + address : String
+    class ResidentProfile {
+        + String address
+        + String apartment_number
+        + Integer floor
     }
 
-    class Employee {
-        + position : String
-        + department : String
+    class MasterProfile {
+        + ServiceType specialization
+        + Boolean is_available
     }
 
-    User <|-- Resident
-    User <|-- Employee
+    User "1" -- "0..1" ResidentProfile : has
+    User "1" -- "0..1" MasterProfile : has
 
-    %% ==================== Сущности ====================
+    %% ==================== NEWS ====================
     class News {
-        + id : UUID
-        + title : String
-        + content : Text
-        + image : ImageField
-        + created_at : DateTime
-        + is_published : Boolean
+        + UUID id
+        + String title
+        + Text content
+        + Image image
+        + DateTime created_at
+        + User author
+        + Boolean is_published
+        + publish()
     }
 
+    %% ==================== APPLICATIONS (PLEA) ====================
     class Application {
-        + id : UUID
-        + number : String
-        + title : String
-        + description : Text
-        + category : Enum
-        + status : Enum
-        + priority : Enum
-        + created_at : DateTime
-        + updated_at : DateTime
+        + UUID id
+        + String number
+        + ServiceType service_type
+        + String title
+        + Text description
+        + ApplicationStatus status
+        + DateTime created_at
+        + DateTime updated_at
+        + User creator (Resident)
+        + User assigned_to (Master)
+        + change_status(new_status)
+        + assign_master(master_id)
     }
 
     class ApplicationStatusHistory {
-        + id : UUID
-        + status : Enum
-        + comment : String
-        + created_at : DateTime
+        + UUID id
+        + ApplicationStatus old_status
+        + ApplicationStatus new_status
+        + Text comment
+        + DateTime created_at
+        + User changed_by
     }
 
+    class ApplicationAttachment {
+        + UUID id
+        + File file
+        + DateTime uploaded_at
+    }
+
+    Application "1" *-- "0..*" ApplicationStatusHistory : tracks
+    Application "1" *-- "0..*" ApplicationAttachment : contains
+    User "1" --o "0..*" Application : creates
+    User "1" --o "0..*" Application : performs
+
+    %% ==================== NOTIFICATIONS ====================
     class Notification {
-        + id : UUID
-        + title : String
-        + message : String
-        + type : Enum
-        + is_read : Boolean
-        + created_at : DateTime
+        + UUID id
+        + User recipient
+        + String title
+        + Text body
+        + String data_json
+        + Boolean is_sent
+        + DateTime created_at
     }
 
-    %% ==================== Связи ====================
-    Resident "1" --> "0..*" Application : "создаёт"
-    Employee "0..1" --> "0..*" Application : "выполняет"
+    class DeviceToken {
+        + User user
+        + String fcm_token
+        + String device_type
+        + DateTime last_seen
+    }
 
-    Application "1" --> "0..*" ApplicationStatusHistory : "история"
-    Application --> "0..*" Notification : "уведомления"
-    News --> "0..*" Notification : "уведомления"
-    User "1" --> "0..*" Notification : "получает"
+    User "1" -- "0..*" DeviceToken : registers
+    User "1" -- "0..*" Notification : receives
+    Application ..> Notification : triggers (on status change)
+    News ..> Notification : triggers (on publish)
+
+    %% ==================== STYLING ====================
+    style User fill:#e1f5fe,stroke:#01579b
+    style Application fill:#fff3e0,stroke:#e65100
+    style News fill:#f3e5f5,stroke:#4a148c
+    style Notification fill:#f1f8e9,stroke:#33691e
 ```
 **Диаграммы являются актуальными на момент последнего обновления. По мере развития проекта они могут обновляться.**
+```
+zheu_system
+├─ README.md
+├─ apps
+│  ├─ applications
+│  ├─ core
+│  ├─ news
+│  └─ notifications
+├─ config
+│  ├─ __init__.py
+│  ├─ asgi.py
+│  ├─ settings.py
+│  ├─ urls.py
+│  └─ wsgi.py
+├─ manage.py
+├─ requirements.txt
+└─ ТЗ для создания системы для ЖЭУ.pdf
+
+```

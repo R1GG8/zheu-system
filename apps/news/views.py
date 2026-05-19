@@ -1,5 +1,5 @@
 from rest_framework import generics, permissions
-from .models import News
+from .models import News    
 from .serializers import NewsSerializer
 
 class NewsListView(generics.ListAPIView):
