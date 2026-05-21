@@ -1,5 +1,7 @@
 from rest_framework import viewsets, permissions, status
 from rest_framework.response import Response
+
+from .permissions import CanChangeStatus, IsOwnerOrStaff
 from .models import Application
 from .serializers import ApplicationSerializer, ApplicationCreateSerializer
 from core.models import Role
@@ -36,3 +38,5 @@ class ApplicationViewSet(viewsets.ModelViewSet):
         # Тут можно добавить проверку прав:
         # житель не может менять статус, только мастер или админ
         return super().update(request, *args, **kwargs)
+
+    permission_classes = [permissions.IsAuthenticated, IsOwnerOrStaff, CanChangeStatus]
