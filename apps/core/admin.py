@@ -7,14 +7,14 @@ from .models import User, Building, Apartment, ResidentProfile, EmployeeProfile
 @admin.register(User)
 class CustomUserAdmin(UserAdmin):
     # Что отображать в списке пользователей
-    list_display = ("username", "email", "role", "is_staff")
+    list_display = ("username", "email", "full_name", "role", "is_staff")
     # Добавляем наши новые поля в формы редактирования
     fieldsets = UserAdmin.fieldsets + (
         ("Дополнительная информация", {"fields": ("role", "phone", "full_name")}),
     )
     # Добавляем поля в форму создания
     add_fieldsets = UserAdmin.add_fieldsets + (
-        (None, {"fields": ("role", "phone", "full_name")}),
+        (None, {"fields": ("role", "email", "phone", "full_name")}),
     )
 
 

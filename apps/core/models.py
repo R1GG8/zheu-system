@@ -25,7 +25,7 @@ class User(AbstractUser):
     )
     full_name = models.CharField(max_length=255, blank=True, verbose_name="ФИО")
 
-    email = models.EmailField(_("email address"), unique=True) 
+    email = models.EmailField(_("email address"), unique=True, blank=True, null=True) 
     REQUIRED_FIELDS = ["email", "full_name"]
 
     class Meta:
