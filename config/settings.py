@@ -1,6 +1,7 @@
 from pathlib import Path
 from datetime import timedelta
 import os
+from django.conf.global_settings import STATIC_ROOT
 from dotenv import load_dotenv
 import sys
 
@@ -105,6 +106,10 @@ USE_TZ = True
 
 
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'static/'
+
+MEDIA_URL = 'media/'
+MEDIA_ROOT = BASE_DIR / 'media/'
 
 AUTH_USER_MODEL = 'core.User'
 

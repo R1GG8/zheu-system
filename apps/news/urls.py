@@ -1,6 +1,11 @@
-from django.urls import path
-from .views import NewsListView
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+from .views import NewsViewSet
+
+# Используем роутер для автоматического создания путей (list, retrieve, create и т.д.)
+router = DefaultRouter()
+router.register(r"", NewsViewSet, basename="news")
 
 urlpatterns = [
-    path('', NewsListView.as_view(), name='news-list'),
+    path("", include(router.urls)),
 ]

@@ -1,7 +1,10 @@
 import uuid
 from django.db import models
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from core.models import User
+
+import random
 
 
 class Application(models.Model):
@@ -65,10 +68,12 @@ class Application(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.number:
-            # Простая генерация номера: год-месяц-рандом
-            import random
+            # Получаем текущее время прямо сейчас
+            now = timezone.now()
+            # Генерируем номер в формате: ГГГГ-ММ-РАНДОМ (например, 2026-05-1234)
+            random_part = random.randint(100, 999)
+            self.number = f"{now.year}-{now.month:02d}-{now.day}--{random_part}"
 
-            self.number = f"{self.created_at.year if self.created_at else '2024'}-{random.randint(1000, 9999)}"
         super().save(*args, **kwargs)
 
 
@@ -82,3 +87,25 @@ class ApplicationAttachment(models.Model):
     class Meta:
         verbose_name = "Вложение"
         verbose_name_plural = "Вложения"
+
+
+class ApplicationStatusHistory(models.Model):
+    application = models.ForeignKey(
+        Application,
+        on_delete=models.CASCADE,
+        related_name="status_history",
+        verbose_name="Заявка",
+    )
+    from_status = models.CharField(
+        max_length=20, verbose_name="Старый статус", null=True
+    )
+    to_status = models.CharField(max_length=20, verbose_name="Новый статус")
+    changed_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата изменения")
+    changed_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, verbose_name="Кто изменил"
+    )
+    comment = models.TextField(blank=True, null=True, verbose_name="Комментарий")
+
+    class Meta:
+        verbose_name = "История статуса"
+        verbose_name_plural = "История статусов"
