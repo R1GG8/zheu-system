@@ -44,10 +44,23 @@ class ApplicationSerializer(serializers.ModelSerializer):
 
 # Сериализатор специально для создания заявки жителем
 class ApplicationCreateSerializer(serializers.ModelSerializer):
+    # Поле для загрузки нескольких файлов
+    uploaded_images = serializers.ListField(
+        child=serializers.ImageField(allow_empty_file=False, use_url=False),
+        write_only=True,
+        required=False,
+    )
+
     class Meta:
         model = Application
-        fields = ["title", "description", "service_type"]
+        fields = ["title", "description", "service_type", "uploaded_images"]
 
     def create(self, validated_data):
-        # Логика автоматического назначения создателя будет в ViewSet
-        return super().create(validated_data)
+        # Извлекаем изображения из данных
+        images = validated_data.pop("uploaded_images", [])
+        # Создаем заявку
+        application = Application.objects.create(**validated_data)
+        # Сохраняем каждое изображение
+        for image in images:
+            ApplicationAttachment.objects.create(application=application, file=image)
+        return application

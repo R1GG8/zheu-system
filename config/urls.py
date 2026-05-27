@@ -7,12 +7,16 @@ from rest_framework_simplejwt.views import (
     TokenRefreshView,
 )
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
+from core.views import CustomTokenObtainPairView # Импортируем наш кастомный класс
+from rest_framework_simplejwt.views import TokenRefreshView
+
 
 urlpatterns = [
     # Панель администратора
     path("admin/", admin.site.urls),
     # Авторизация через JWT
-    path("api/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
+    # path("api/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
+    path('api/token/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     # Автоматическая документация API (Swagger)
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
@@ -24,6 +28,7 @@ urlpatterns = [
     # Модули системы
     path("api/applications/", include("applications.urls")),
     path("api/news/", include("news.urls")),
+    path("api/notifications/", include("notifications.urls")),
 ]
 
 # Позволяет Django отдавать медиа-файлы (фото к новостям и заявкам) во время разработки
