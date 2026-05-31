@@ -1,6 +1,6 @@
+<!-- Обновленный шаблон App.vue (боковое меню) -->
 <template>
   <div class="app-container">
-    <!-- Sidebar -->
     <aside v-if="auth.isAuthenticated" class="sidebar">
       <div>
         <div class="logo-container">
@@ -15,11 +15,19 @@
           <router-link to="/" class="nav-item">📰 События и Новости</router-link>
           <router-link to="/applications" class="nav-item">💼 Диспетчерская</router-link>
           <router-link to="/create" v-if="auth.role === 'RESIDENT'" class="nav-item">✍️ Подать заявку</router-link>
+          <!-- Ссылка на Личный кабинет -->
+          <router-link to="/profile" class="nav-item">👤 Личный кабинет</router-link>
         </nav>
       </div>
 
-      <div style="border-top: 1px solid var(--border-color); padding-top: 20px;">
-        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+      <!-- Кнопка темы и Юзер -->
+      <div style="border-top: 1px solid var(--border-color); padding-top: 20px; display: flex; flex-direction: column; gap: 16px;">
+        <!-- Переключатель тем -->
+        <button @click="toggleTheme" class="btn" style="background: rgba(255,255,255,0.05); color: var(--text-main); font-size: 0.85rem;">
+          {{ isDark ? '☀️ Светлая тема' : '🌙 Темная тема' }}
+        </button>
+
+        <div style="display: flex; align-items: center; gap: 12px;">
           <div style="width: 36px; height: 36px; border-radius: 50%; background: var(--bg-card); display: flex; align-items: center; justify-content: center;">👤</div>
           <div>
             <div style="font-size: 0.85rem; font-weight: 600;">{{ auth.user?.full_name }}</div>
@@ -30,7 +38,6 @@
       </div>
     </aside>
 
-    <!-- Content Area -->
     <div class="main-content">
       <header v-if="!auth.isAuthenticated" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px;">
         <h2 style="margin: 0;">ЖЭУ Портал 2026</h2>
@@ -42,16 +49,30 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useAuthStore } from './stores/auth';
 import { useRouter } from 'vue-router';
 
 const auth = useAuthStore();
 const router = useRouter();
+const isDark = ref(localStorage.getItem('theme') !== 'light');
 
 const roleDisplay = computed(() => {
   const roles = { 'RESIDENT': 'Жителя', 'MASTER': 'Мастера', 'ADMIN': 'Диспетчера' };
   return roles[auth.role] || 'Пользователя';
+});
+
+// Логика смены темы
+const toggleTheme = () => {
+  isDark.value = !isDark.value;
+  const themeClass = isDark.value ? 'dark' : 'light-theme';
+  document.body.className = themeClass;
+  localStorage.setItem('theme', isDark.value ? 'dark' : 'light');
+};
+
+onMounted(() => {
+  // Задаем тему при инициализации
+  document.body.className = isDark.value ? 'dark' : 'light-theme';
 });
 
 const handleLogout = () => {

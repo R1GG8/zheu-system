@@ -1,19 +1,35 @@
-/* Переменные темы (Modern Dark Slate & Indigo) */
+/* Переменные по умолчанию (Темная тема Slate) */
 :root {
-  --bg-main: #0f172a;      /* Slate 900 */
-  --bg-sidebar: #020617;   /* Slate 950 */
-  --bg-card: #1e293b;      /* Slate 800 */
-  --border-color: #334155; /* Slate 700 */
-  --text-main: #f8fafc;    /* Slate 50 */
-  --text-muted: #94a3b8;   /* Slate 400 */
-  --primary: #6366f1;      /* Indigo 500 */
+  --bg-main: #0f172a;
+  --bg-sidebar: #020617;
+  --bg-card: #1e293b;
+  --border-color: #334155;
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --primary: #6366f1;
   --primary-hover: #4f46e5;
-  --success: #10b981;      /* Emerald 500 */
-  --warning: #f59e0b;      /* Amber 500 */
-  --danger: #ef4444;       /* Red 500 */
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
   --radius-lg: 16px;
   --radius-md: 12px;
-  --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Переменные для Светлой темы (активируется классом на теге html/body) */
+.light-theme {
+  --bg-main: #f1f5f9;
+  /* Светло-серый */
+  --bg-sidebar: #ffffff;
+  /* Белый */
+  --bg-card: #ffffff;
+  /* Белый */
+  --border-color: #cbd5e1;
+  /* Серый разделитель */
+  --text-main: #0f172a;
+  /* Темный текст */
+  --text-muted: #64748b;
+  /* Серый текст */
 }
 
 body {
@@ -22,6 +38,8 @@ body {
   color: var(--text-main);
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  /* Плавный переход при смене темы */
 }
 
 /* Layout */
@@ -40,6 +58,7 @@ body {
   flex-direction: column;
   justify-content: space-between;
   box-sizing: border-box;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
 .main-content {
@@ -49,7 +68,18 @@ body {
   box-sizing: border-box;
 }
 
-/* Typography & Logo */
+/* Сохранение переносов строк и абзацев (РЕШАЕТ ПРОБЛЕМУ СКЛЕИВАНИЯ ТЕКСТА) */
+
+.preserve-text {
+  white-space: pre-wrap;
+  line-height: 1.6;
+  
+  /* Добавь эти две строки: */
+  overflow-wrap: break-word; /* Современный стандарт переноса длинных слов */
+  word-wrap: break-word;     /* Поддержка старых браузеров */
+}
+
+/* Остальные стили остаются прежними... */
 .logo-container {
   display: flex;
   align-items: center;
@@ -71,7 +101,6 @@ body {
   box-shadow: 0 8px 16px rgba(99, 102, 241, 0.2);
 }
 
-/* Navigation */
 .nav-menu {
   display: flex;
   flex-direction: column;
@@ -90,7 +119,8 @@ body {
   transition: var(--transition);
 }
 
-.nav-item:hover, .nav-item.router-link-active {
+.nav-item:hover,
+.nav-item.router-link-active {
   color: var(--text-main);
   background-color: rgba(255, 255, 255, 0.05);
 }
@@ -103,10 +133,9 @@ body {
   padding-left: 12px;
 }
 
-/* UI Cards */
 .grid-container {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 24px;
   margin-bottom: 32px;
 }
@@ -120,12 +149,6 @@ body {
   transition: var(--transition);
 }
 
-.card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
-}
-
-/* Buttons & Inputs */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -179,7 +202,6 @@ body {
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
 }
 
-/* Tables */
 .table-container {
   background-color: var(--bg-sidebar);
   border: 1px solid var(--border-color);
@@ -189,7 +211,7 @@ body {
 
 .table-header {
   padding: 20px 24px;
-  border-b: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-color);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -201,7 +223,8 @@ table {
   text-align: left;
 }
 
-th, td {
+th,
+td {
   padding: 16px 24px;
 }
 
@@ -218,7 +241,6 @@ tr:not(:last-child) {
   border-bottom: 1px solid rgba(255, 255, 255, 0.02);
 }
 
-/* Badges */
 .badge {
   display: inline-flex;
   padding: 4px 10px;
@@ -229,11 +251,30 @@ tr:not(:last-child) {
   letter-spacing: 0.05em;
 }
 
-.badge-new { background-color: rgba(99, 102, 241, 0.1); color: #a5b4fc; border: 1px solid rgba(99, 102, 241, 0.2); }
-.badge-progress { background-color: rgba(245, 158, 11, 0.1); color: #fde047; border: 1px solid rgba(245, 158, 11, 0.2); }
-.badge-done { background-color: rgba(16, 185, 129, 0.1); color: #6ee7b7; border: 1px solid rgba(16, 185, 129, 0.2); }
+.badge-new {
+  background-color: rgba(99, 102, 241, 0.1);
+  color: #a5b4fc;
+  border: 1px solid rgba(99, 102, 241, 0.2);
+}
 
-/* Modal/Drawer */
+.badge-progress {
+  background-color: rgba(245, 158, 11, 0.1);
+  color: #fde047;
+  border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+.badge-done {
+  background-color: rgba(16, 185, 129, 0.1);
+  color: #6ee7b7;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.badge-danger {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: #fca5a5;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -254,10 +295,10 @@ tr:not(:last-child) {
   overflow-y: auto;
 }
 
-/* --- МЕДИА-ЗАПРОСЫ ДЛЯ МОБИЛЬНЫХ УСТРОЙСТВ (Экран < 768px) --- */
+/* Стили мобильной адаптации */
 @media (max-width: 768px) {
   .app-container {
-    flex-direction: column; /* Вертикальный стек вместо горизонтального */
+    flex-direction: column;
   }
 
   .sidebar {
@@ -290,26 +331,30 @@ tr:not(:last-child) {
     gap: 6px;
   }
 
-  .sidebar > div:last-child {
-    display: none; /* Скрываем карточку профиля на мобилках в шапке, чтобы не забивать экран */
+  .sidebar>div:last-child {
+    display: none;
   }
 
   .main-content {
     padding: 20px;
-    padding-bottom: 80px; /* Место под мобильные элементы */
+    padding-bottom: 80px;
   }
 
   .grid-container {
-    grid-template-columns: 1fr; /* Карточки новостей в одну колонку */
+    grid-template-columns: 1fr;
   }
 
-  /* Адаптация таблиц под мобильные */
-  table, thead, tbody, th, td, tr {
-    display: block; /* Превращаем таблицу в блочную структуру */
+  table,
+  thead,
+  tbody,
+  th,
+  td,
+  tr {
+    display: block;
   }
 
   thead {
-    display: none; /* Скрываем заголовки таблицы */
+    display: none;
   }
 
   tr {
@@ -329,7 +374,7 @@ tr:not(:last-child) {
   }
 
   td::before {
-    content: attr(data-label); /* Добавляем мобильные подписи */
+    content: attr(data-label);
     font-size: 0.75rem;
     font-weight: 700;
     color: var(--text-muted);
@@ -346,4 +391,10 @@ tr:not(:last-child) {
     border-left: none;
     padding: 20px;
   }
+}
+
+/* Защита от переполнения для всех параграфов текста на сайте */
+p, h2, h3, h4, td {
+  overflow-wrap: break-word;
+  word-wrap: break-word;
 }

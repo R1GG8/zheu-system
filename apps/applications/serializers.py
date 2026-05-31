@@ -1,16 +1,21 @@
 from rest_framework import serializers
-from .models import Application, ApplicationAttachment
+from .models import Application, ApplicationAttachment, ApplicationStatusHistory
 from core.models import User
 
 
-# Сериализатор для вложений
 class ApplicationAttachmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = ApplicationAttachment
         fields = ["id", "file", "uploaded_at"]
 
 
-# Основной сериализатор для просмотра заявок
+# 1. Создаем сериализатор для истории статусов
+class ApplicationStatusHistorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ApplicationStatusHistory
+        fields = ["id", "from_status", "to_status", "changed_at", "comment"]
+
+
 class ApplicationSerializer(serializers.ModelSerializer):
     creator_name = serializers.ReadOnlyField(source="creator.full_name")
     master_name = serializers.ReadOnlyField(source="master.full_name")
@@ -19,6 +24,9 @@ class ApplicationSerializer(serializers.ModelSerializer):
     service_type_display = serializers.CharField(
         source="get_service_type_display", read_only=True
     )
+
+    # 2. Вкладываем историю в основную заявку
+    status_history = ApplicationStatusHistorySerializer(many=True, read_only=True)
 
     class Meta:
         model = Application
@@ -38,13 +46,12 @@ class ApplicationSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
             "attachments",
+            "status_history",  # <-- Добавили поле в API!
         ]
         read_only_fields = ["number", "creator", "status", "created_at", "updated_at"]
 
 
-# Сериализатор специально для создания заявки жителем
 class ApplicationCreateSerializer(serializers.ModelSerializer):
-    # Поле для загрузки нескольких файлов
     uploaded_images = serializers.ListField(
         child=serializers.ImageField(allow_empty_file=False, use_url=False),
         write_only=True,
@@ -56,11 +63,8 @@ class ApplicationCreateSerializer(serializers.ModelSerializer):
         fields = ["title", "description", "service_type", "uploaded_images"]
 
     def create(self, validated_data):
-        # Извлекаем изображения из данных
         images = validated_data.pop("uploaded_images", [])
-        # Создаем заявку
         application = Application.objects.create(**validated_data)
-        # Сохраняем каждое изображение
         for image in images:
             ApplicationAttachment.objects.create(application=application, file=image)
         return application

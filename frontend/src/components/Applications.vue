@@ -22,7 +22,6 @@
         </thead>
         <tbody>
           <tr v-for="app in applications" :key="app.id">
-            <!-- Добавили data-label для мобильной верстки -->
             <td data-label="Заявка">
               <div style="font-weight: 700; color: var(--primary);">{{ app.number }}</div>
               <div style="font-size: 0.85rem; font-weight: 500; margin-top: 4px;">{{ app.title }}</div>
@@ -71,26 +70,40 @@
           </div>
         </div>
 
-        <!-- Кнопки управления для диспетчера / мастера -->
+        <!-- Кнопки управления для Жителя (Отмена) -->
+        <div v-if="auth.role === 'RESIDENT' && selectedApp.status === 'NEW'" style="margin-bottom: 32px;">
+          <button @click="deleteApp" class="btn" style="background: rgba(239, 68, 68, 0.1); color: var(--danger); width: 100%; border: 1px solid rgba(239,68,68,0.2);">
+            Отменить и удалить заявку
+          </button>
+        </div>
+
+        <!-- Кнопки управления для Диспетчера / Мастера -->
         <div v-if="auth.role === 'ADMIN' || auth.role === 'MASTER'" style="margin-bottom: 32px; padding: 20px; background: var(--bg-sidebar); border: 1px solid var(--border-color); border-radius: var(--radius-md);">
           <h4 style="margin: 0 0 16px 0; color: var(--text-muted);">Управление заявкой</h4>
           
           <!-- Диспетчер: Назначить мастера -->
-          <div v-if="auth.role === 'ADMIN'" style="display: flex; gap: 12px; align-items: center;">
+          <div v-if="auth.role === 'ADMIN'" style="display: flex; gap: 12px; align-items: center; width: 100%;">
             <select v-model="assignmentMasterId" class="form-input" style="flex: 1;">
               <option value="">-- Выберите мастера --</option>
-              <option v-for="m in masters" :key="m.id" :value="m.id">{{ m.full_name }}</option>
+              <option v-for="m in filteredMasters" :key="m.id" :value="m.id">
+                {{ m.full_name || m.username }} ({{ m.position }})
+              </option>
             </select>
             <button @click="assignMaster" class="btn btn-primary">Назначить</button>
           </div>
 
-          <!-- Мастер: Изменить статус -->
-          <div v-if="auth.role === 'MASTER'" style="display: flex; flex-direction: column; gap: 12px;">
+          <!-- Мастер: Самоназначение (если заявка новая) -->
+          <div v-if="auth.role === 'MASTER' && selectedApp.status === 'NEW'">
+            <button @click="selfAssign" class="btn btn-primary" style="width: 100%;">Взять заявку в работу</button>
+          </div>
+
+          <!-- Мастер: Изменить статус (если заявка уже в работе) -->
+          <div v-if="auth.role === 'MASTER' && selectedApp.status === 'IN_PROGRESS'" style="display: flex; flex-direction: column; gap: 12px;">
             <div style="display: flex; gap: 12px;">
-              <button @click="changeStatus('IN_PROGRESS')" class="btn" style="background: rgba(245, 158, 11, 0.1); color: #fde047; flex: 1;">В работу</button>
-              <button @click="changeStatus('DONE')" class="btn" style="background: rgba(16, 185, 129, 0.1); color: #6ee7b7; flex: 1;">Выполнено</button>
+              <button @click="changeStatus('DONE')" class="btn" style="background: rgba(16, 185, 129, 0.1); color: #6ee7b7; flex: 1;">Завершить работу (Выполнено)</button>
+              <button @click="changeStatus('CANCELED')" class="btn" style="background: rgba(239, 68, 68, 0.1); color: var(--danger); flex: 1;">Отклонить заявку</button>
             </div>
-            <input v-model="statusChangeComment" type="text" class="form-input" placeholder="Добавить комментарий к изменению статуса" />
+            <input v-model="statusChangeComment" type="text" class="form-input" placeholder="Комментарий к изменению статуса" />
           </div>
         </div>
 
@@ -112,7 +125,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import axios from 'axios';
 import { useAuthStore } from '../stores/auth';
 
@@ -122,6 +135,24 @@ const selectedApp = ref(null);
 const assignmentMasterId = ref('');
 const statusChangeComment = ref('');
 const masters = ref([]);
+
+// Фильтрация мастеров на основе типа заявки (с поддержкой базовой роли)
+const filteredMasters = computed(() => {
+  if (!selectedApp.value) return [];
+  const serviceType = selectedApp.value.service_type;
+  return masters.value.filter(m => {
+    if (!m.position) return true; 
+    const pos = m.position.toLowerCase();
+    if (pos === 'мастер' || pos === 'master') return true;
+    if (serviceType === 'PLUMBER') {
+      return pos.includes('сантехник') || pos.includes('plumber');
+    }
+    if (serviceType === 'ELECTRICIAN') {
+      return pos.includes('электрик') || pos.includes('electrician');
+    }
+    return true;
+  });
+});
 
 const statusClass = (status) => {
   const classes = {
@@ -155,18 +186,34 @@ const assignMaster = async () => {
   }
 };
 
+const selfAssign = async () => {
+  const headers = { Authorization: `Bearer ${auth.token}` };
+  try {
+    await axios.post(
+      `http://127.0.0.1:8000/api/applications/${selectedApp.value.id}/self_assign/`,
+      {},
+      { headers }
+    );
+    alert('Вы успешно взяли заявку в работу!');
+    selectedApp.value = null;
+    loadData();
+  } catch (e) {
+    alert('Не удалось взять заявку в работу.');
+  }
+};
+
 const changeStatus = async (newStatus) => {
   const headers = { Authorization: `Bearer ${auth.token}` };
   try {
-    await axios.patch(
-      `http://127.0.0.1:8000/api/applications/${selectedApp.value.id}/`,
+    await axios.post(
+      `http://127.0.0.1:8000/api/applications/${selectedApp.value.id}/change_status/`,
       { 
         status: newStatus,
         comment: statusChangeComment.value 
       },
       { headers }
     );
-    alert('Статус обновлен!');
+    alert('Статус успешно изменен!');
     statusChangeComment.value = '';
     selectedApp.value = null;
     loadData();
@@ -175,17 +222,35 @@ const changeStatus = async (newStatus) => {
   }
 };
 
+const deleteApp = async () => {
+  if (!confirm('Вы действительно хотите отменить и удалить эту заявку?')) return;
+  const headers = { Authorization: `Bearer ${auth.token}` };
+  try {
+    await axios.delete(`http://127.0.0.1:8000/api/applications/${selectedApp.value.id}/`, { headers });
+    alert('Заявка отменена.');
+    selectedApp.value = null;
+    loadData();
+  } catch (e) {
+    alert('Ошибка удаления.');
+  }
+};
+
 const loadData = async () => {
   const headers = { Authorization: `Bearer ${auth.token}` };
-  const res = await axios.get('http://127.0.0.1:8000/api/applications/', { headers });
-  applications.value = Array.isArray(res.data) ? res.data : res.data.results;
+  try {
+    const res = await axios.get('http://127.0.0.1:8000/api/applications/', { headers });
+    applications.value = Array.isArray(res.data) ? res.data : res.data.results;
+  } catch (e) {
+    console.error("Ошибка загрузки заявок", e);
+  }
 
   if (auth.role === 'ADMIN') {
-    // Временный список для диспетчера
-    masters.value = [
-      { id: '1b8976b9-4f81-4209-8b43-41bbd0058b21', full_name: 'Иванов С.П. (Сантехник)' },
-      { id: '2c9876b9-4f81-4209-8b43-41bbd0058b22', full_name: 'Петров А.В. (Электрик)' }
-    ];
+    try {
+      const mastersRes = await axios.get('http://127.0.0.1:8000/api/users/masters/', { headers });
+      masters.value = Array.isArray(mastersRes.data) ? mastersRes.data : (mastersRes.data.results || []);
+    } catch (e) {
+      console.error("Ошибка загрузки списка мастеров", e);
+    }
   }
 };
 

@@ -7,8 +7,10 @@ from rest_framework_simplejwt.views import (
     TokenRefreshView,
 )
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
-from core.views import CustomTokenObtainPairView # Импортируем наш кастомный класс
+from core.views import CustomTokenObtainPairView 
+from core.views import MasterListView
 from rest_framework_simplejwt.views import TokenRefreshView
+from core.views import UserProfileView
 
 
 urlpatterns = [
@@ -29,6 +31,8 @@ urlpatterns = [
     path("api/applications/", include("applications.urls")),
     path("api/news/", include("news.urls")),
     path("api/notifications/", include("notifications.urls")),
+    path('api/users/masters/', MasterListView.as_view(), name='master-list'),
+    path('api/users/profile/', UserProfileView.as_view(), name='user-profile'),
 ]
 
 # Позволяет Django отдавать медиа-файлы (фото к новостям и заявкам) во время разработки

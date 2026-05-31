@@ -2,4 +2,9 @@ from django.apps import AppConfig
 
 
 class ApplicationsConfig(AppConfig):
-    name = 'applications'
+    default_auto_field = "django.db.models.BigAutoField"
+    name = "applications"
+
+    def ready(self):
+        # Обязательно импортируем сигналы при запуске приложения!
+        import applications.signals
