@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
+import { requestNotificationPermission } from '../services/firebase';
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
@@ -13,7 +14,7 @@ export const useAuthStore = defineStore('auth', {
   },
   actions: {
     async login(username, password) {
-      try {
+      try { 
         const response = await axios.post('http://127.0.0.1:8000/api/token/', { username, password });
         this.token = response.data.access;
         localStorage.setItem('token', this.token);
@@ -26,26 +27,28 @@ export const useAuthStore = defineStore('auth', {
           full_name: decoded.full_name || username
         };
         localStorage.setItem('user', JSON.stringify(this.user));
-        
-        // Внутри действия login, сразу после успешного получения токена:
+
         axios.defaults.headers.common['Authorization'] = `Bearer ${this.token}`;
 
-        // Имитируем получение FCM токена от браузера/телефона
-        const mockFcmToken = "fcm_token_2026_debian_device_12345"; 
+        const realFcmToken = await requestNotificationPermission(); 
 
-        try {
-        await axios.post('http://127.0.0.1:8000/api/notifications/device-tokens/', {
-            fcm_token: mockFcmToken,
-            device_type: 'WEB'
-        });
-        
-        console.log("Устройство зарегистрировано в Firebase на бэкенде!");
-        } catch (e) {
-        console.log("Не удалось привязать устройство к пушам.");
+        if (realFcmToken) {
+          try {
+            await axios.post('http://127.0.0.1:8000/api/notifications/device-tokens/', {
+              fcm_token: realFcmToken,
+              device_type: 'WEB'
+            });
+            console.log("Реальное устройство успешно привязано к пушам!");
+          } catch (e) {
+            console.log("Не удалось сохранить токен устройства на сервере.");
+          } 
         }
-        return true;
-      } catch (error) {
-        return false;
+        
+        return true; 
+
+      } catch (error) { 
+        console.error("Ошибка входа:", error);
+        return false; 
       }
     },
     logout() {
