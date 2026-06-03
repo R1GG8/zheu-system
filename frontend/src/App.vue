@@ -15,8 +15,14 @@
           <router-link to="/" class="nav-item">📰 События и Новости</router-link>
           <router-link to="/applications" class="nav-item">💼 Диспетчерская</router-link>
           <router-link to="/create" v-if="auth.role === 'RESIDENT'" class="nav-item">✍️ Подать заявку</router-link>
-          <!-- Ссылка на Личный кабинет -->
           <router-link to="/profile" class="nav-item">👤 Личный кабинет</router-link>
+          
+          <router-link to="/notifications" class="nav-item" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+            <span>🔔 Уведомления</span>
+            <span v-if="unreadCount > 0" style="background-color: var(--danger); color: white; font-size: 0.75rem; font-weight: 800; padding: 2px 8px; border-radius: 9999px; line-height: 1;">
+              {{ unreadCount }}
+            </span>
+          </router-link>
         </nav>
       </div>
 
@@ -49,13 +55,52 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+// Внутри скрипта App.vue
+import { ref, computed, onMounted, watch } from 'vue';
 import { useAuthStore } from './stores/auth';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
+import axios from 'axios';
 
 const auth = useAuthStore();
 const router = useRouter();
+const route = useRoute();
 const isDark = ref(localStorage.getItem('theme') !== 'light');
+const unreadCount = ref(0);
+
+// Загрузка количества непрочитанных уведомлений из базы
+const loadUnreadCount = async () => {
+  if (auth.isAuthenticated) {
+    const headers = { Authorization: `Bearer ${auth.token}` };
+    try {
+      const res = await axios.get('http://127.0.0.1:8000/api/notifications/my/', { headers });
+      const list = Array.isArray(res.data) ? res.data : (res.data.results || []);
+      // Считаем только те, у которых is_read === false
+      unreadCount.value = list.filter(item => !item.is_read).length;
+    } catch (e) {
+      console.log("Не удалось загрузить счетчик уведомлений.");
+    }
+  }
+};
+
+// Сбрасываем счетчик, если пользователь зашел на страницу уведомлений
+watch(() => route.path, (newPath) => {
+  if (newPath === '/notifications') {
+    unreadCount.value = 0;
+  } else {
+    loadUnreadCount();
+  }
+});
+
+onMounted(() => {
+  document.body.className = isDark.value ? 'dark' : 'light-theme';
+  loadUnreadCount();
+  
+  // Каждые 30 секунд проверяем базу на наличие новых уведомлений (простой поллинг)
+  setInterval(() => {
+    loadUnreadCount();
+  }, 30000);
+});
+
 
 const roleDisplay = computed(() => {
   const roles = { 'RESIDENT': 'Жителя', 'MASTER': 'Мастера', 'ADMIN': 'Диспетчера' };

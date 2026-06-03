@@ -13,7 +13,7 @@ class MasterListView(generics.ListAPIView):
     """Эндпоинт для получения списка всех мастеров (доступен только админам)"""
 
     serializer_class = UserMinimalSerializer
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [permissions.IsAuthenticated] 
 
     def get_queryset(self):
         return User.objects.filter(role=Role.MASTER)

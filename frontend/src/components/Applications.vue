@@ -92,9 +92,22 @@
             <button @click="assignMaster" class="btn btn-primary">Назначить</button>
           </div>
 
-          <!-- Мастер: Самоназначение (если заявка новая) -->
+          <!-- Мастер: Если заявка новая (NEW) -->
           <div v-if="auth.role === 'MASTER' && selectedApp.status === 'NEW'">
-            <button @click="selfAssign" class="btn btn-primary" style="width: 100%;">Взять заявку в работу</button>
+            <!-- Вариант А: Заявка предложена лично ему жителем -->
+            <div v-if="selectedApp.master === auth.user.id" style="display: flex; gap: 12px;">
+              <button @click="handleMasterDecision('accept')" class="btn" style="background: rgba(16, 185, 129, 0.1); color: #6ee7b7; flex: 1;">
+                ✅ Принять заявку
+              </button>
+              <button @click="handleMasterDecision('reject')" class="btn" style="background: rgba(239, 68, 68, 0.1); color: var(--danger); flex: 1;">
+                ❌ Отклонить заявку
+              </button>
+            </div>
+            
+            <!-- Вариант Б: Заявка общая без мастера, берем её сами -->
+            <div v-else-if="!selectedApp.master">
+              <button @click="selfAssign" class="btn btn-primary" style="width: 100%;">Взять заявку в работу</button>
+            </div>
           </div>
 
           <!-- Мастер: Изменить статус (если заявка уже в работе) -->
@@ -135,6 +148,25 @@ const selectedApp = ref(null);
 const assignmentMasterId = ref('');
 const statusChangeComment = ref('');
 const masters = ref([]);
+
+const handleMasterDecision = async (decision) => {
+  const endpoint = decision === 'accept' ? 'accept_application' : 'reject_application';
+  const headers = { Authorization: `Bearer ${auth.token}` };
+  
+  try {
+    await axios.post(
+      `http://127.0.0.1:8000/api/applications/${selectedApp.value.id}/${endpoint}/`,
+      {},
+      { headers }
+    );
+    const msg = decision === 'accept' ? 'Заявка принята в работу!' : 'Вы отклонили заявку. Она возвращена в общую очередь.';
+    alert(msg);
+    selectedApp.value = null;
+    loadData();
+  } catch (e) {
+    alert('Не удалось обработать решение.');
+  }
+};
 
 // Фильтрация мастеров на основе типа заявки (с поддержкой базовой роли)
 const filteredMasters = computed(() => {

@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .models import Application, ApplicationAttachment, ApplicationStatusHistory
-from core.models import User
+from core.models import User, Role
 
 
 class ApplicationAttachmentSerializer(serializers.ModelSerializer):
@@ -57,10 +57,16 @@ class ApplicationCreateSerializer(serializers.ModelSerializer):
         write_only=True,
         required=False,
     )
+    master = serializers.PrimaryKeyRelatedField(
+        queryset=User.objects.filter(role=Role.MASTER),
+        required=False,
+        allow_null=True
+    )
 
     class Meta:
         model = Application
-        fields = ["title", "description", "service_type", "uploaded_images"]
+        fields = ['title', 'description', 'service_type', 'uploaded_images', 'master']
+
 
     def create(self, validated_data):
         images = validated_data.pop("uploaded_images", [])

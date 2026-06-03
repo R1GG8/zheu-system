@@ -1,5 +1,6 @@
 import firebase_admin
 from firebase_admin import credentials, messaging
+from .models import Notification
 
 
 def send_push_notification(user, title, body, data=None):
@@ -7,7 +8,7 @@ def send_push_notification(user, title, body, data=None):
     if not firebase_admin._apps:
         print("Firebase не инициализирован.")
         return
-    
+
     tokens = list(user.device_tokens.values_list("fcm_token", flat=True))
 
     if not tokens:
@@ -23,5 +24,6 @@ def send_push_notification(user, title, body, data=None):
         tokens=tokens,
     )
 
+    Notification.objects.create(user=user, title=title, body=body)
     response = messaging.send_each_for_multicast(message)
     print(f"Successfully sent {response.success_count} messages")

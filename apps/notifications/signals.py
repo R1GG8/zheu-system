@@ -8,7 +8,14 @@ from .services import send_push_notification
 
 @receiver(post_save, sender=Application)
 def notify_application_update(sender, instance, created, **kwargs):
-    if not created:
+    if created:
+        if instance.master:
+            send_push_notification(
+                user=instance.master,
+                title="Предложена новая заявка",
+                body=f"Житель предложил вам заявку №{instance.number}: {instance.title}. Ожидает вашего согласия.",
+            )
+    else:
         send_push_notification(
             user=instance.creator,
             title=f"Заявка №{instance.number}",

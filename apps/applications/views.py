@@ -1,4 +1,3 @@
-# apps/applications/views.py
 from rest_framework import viewsets, permissions, status
 from rest_framework.response import Response
 from rest_framework.decorators import action
@@ -6,7 +5,7 @@ from django.db import models
 
 from .models import Application
 from .serializers import ApplicationSerializer, ApplicationCreateSerializer
-from core.models import User, Role  # Импортируем User и Role
+from core.models import User, Role  
 from .permissions import IsOwnerOrStaff, CanChangeStatus
 
 
@@ -26,7 +25,6 @@ class ApplicationViewSet(viewsets.ModelViewSet):
             return Application.objects.all()
 
         if user.role == Role.MASTER:
-            # Мастер видит свои задачи И все новые (неназначенные), чтобы взять их в работу
             return Application.objects.filter(
                 models.Q(master=user) | models.Q(status=Application.Status.NEW)
             )
@@ -36,7 +34,6 @@ class ApplicationViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(creator=self.request.user)
 
-    # 1. Действие Диспетчера: Назначить мастера
     @action(detail=True, methods=["post"], permission_classes=[permissions.IsAdminUser])
     def assign_master(self, request, pk=None):
         application = self.get_object()
@@ -51,7 +48,6 @@ class ApplicationViewSet(viewsets.ModelViewSet):
         except User.DoesNotExist:
             return Response({"error": "Мастер не найден"}, status=400)
 
-    # 2. Действие Мастера: Взять заявку в работу (Самоназначение)
     @action(
         detail=True, methods=["post"], permission_classes=[permissions.IsAuthenticated]
     )
@@ -73,7 +69,6 @@ class ApplicationViewSet(viewsets.ModelViewSet):
         application.save()
         return Response({"status": "Вы успешно взяли заявку в работу"})
 
-    # 3. Безопасное изменение статуса (для Мастера и Админа) с комментарием
     @action(
         detail=True, methods=["post"], permission_classes=[permissions.IsAuthenticated]
     )
@@ -91,9 +86,8 @@ class ApplicationViewSet(viewsets.ModelViewSet):
             return Response({"error": "Некорректный статус"}, status=400)
 
         application.status = new_status
-        application.save()  # Сигнал автоматически создаст запись в истории
+        application.save()  
 
-        # Если мастер оставил комментарий, обновим им запись в истории
         if comment:
             history = application.status_history.order_by("-changed_at").first()
             if history:
@@ -102,3 +96,46 @@ class ApplicationViewSet(viewsets.ModelViewSet):
                 history.save()
 
         return Response({"status": "Статус успешно изменен"})
+
+    @action(
+        detail=True, methods=["post"], permission_classes=[permissions.IsAuthenticated]
+    )
+    def accept_application(self, request, pk=None):
+        application = self.get_object()
+
+        if request.user.role != Role.MASTER or application.master != request.user:
+            return Response(
+                {"error": "Вы не являетесь мастером этой заявки"}, status=403
+            )
+
+        if application.status != Application.Status.NEW:
+            return Response(
+                {"error": "Заявка уже запущена в работу или закрыта"}, status=400
+            )
+
+        application.status = Application.Status.IN_PROGRESS
+        application.save()
+        return Response({"status": "Заявка принята в работу"})
+
+    @action(
+        detail=True, methods=["post"], permission_classes=[permissions.IsAuthenticated]
+    )
+    def reject_application(self, request, pk=None):
+        application = self.get_object()
+
+        if request.user.role != Role.MASTER or application.master != request.user:
+            return Response(
+                {"error": "Вы не являетесь мастером этой заявки"}, status=403
+            )
+
+        if application.status != Application.Status.NEW:
+            return Response(
+                {"error": "Нельзя отклонить заявку в текущем статусе"}, status=400
+            )
+
+        application.master = None
+        application.status = Application.Status.NEW
+        application.save()
+        return Response(
+            {"status": "Вы отклонили заявку. Она возвращена в общую очередь."}
+        )
