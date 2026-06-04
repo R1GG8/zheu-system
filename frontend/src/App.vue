@@ -1,4 +1,3 @@
-<!-- Обновленный шаблон App.vue (боковое меню) -->
 <template>
   <div class="app-container">
     <aside v-if="auth.isAuthenticated" class="sidebar">

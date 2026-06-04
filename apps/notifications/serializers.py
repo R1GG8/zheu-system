@@ -12,7 +12,6 @@ class DeviceTokenSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         user = self.context["request"].user
-        # Метод update_or_create обновит владельца токена или создаст запись, если её нет
         token, created = DeviceToken.objects.update_or_create(
             fcm_token=validated_data["fcm_token"],
             defaults={

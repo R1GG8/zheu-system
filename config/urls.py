@@ -14,7 +14,6 @@ from core.views import UserProfileView
 
 
 urlpatterns = [
-    # Панель администратора
     path("admin/", admin.site.urls),
     # Авторизация через JWT
     # path("api/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
@@ -35,7 +34,6 @@ urlpatterns = [
     path('api/users/profile/', UserProfileView.as_view(), name='user-profile'),
 ]
 
-# Позволяет Django отдавать медиа-файлы (фото к новостям и заявкам) во время разработки
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

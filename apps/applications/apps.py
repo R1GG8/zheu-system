@@ -6,5 +6,4 @@ class ApplicationsConfig(AppConfig):
     name = "applications"
 
     def ready(self):
-        # Обязательно импортируем сигналы при запуске приложения!
         import applications.signals

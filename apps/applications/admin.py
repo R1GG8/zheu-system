@@ -1,16 +1,13 @@
-# apps/applications/admin.py
 from django.contrib import admin
 from .models import Application, ApplicationAttachment, ApplicationStatusHistory
 
 
-# Позволяет видеть вложенные фото прямо в карточке заявки
 class AttachmentInline(admin.TabularInline):
     model = ApplicationAttachment
     extra = 0
     readonly_fields = ("file",)
 
 
-# Позволяет видеть всю историю изменений прямо внутри заявки
 class StatusHistoryInline(admin.TabularInline):
     model = ApplicationStatusHistory
     extra = 0
@@ -39,7 +36,6 @@ class ApplicationAdmin(admin.ModelAdmin):
     inlines = [AttachmentInline, StatusHistoryInline]
 
 
-# Отдельная регистрация истории для удобного поиска диспетчером
 @admin.register(ApplicationStatusHistory)
 class ApplicationStatusHistoryAdmin(admin.ModelAdmin):
     list_display = (
