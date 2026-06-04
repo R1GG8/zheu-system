@@ -11,7 +11,6 @@ class Role(models.TextChoices):
 
 
 class User(AbstractUser):
-    # Используем UUID для легкого перехода на микросервисы в будущем
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
     role = models.CharField(
@@ -99,7 +98,6 @@ class EmployeeProfile(models.Model):
     )
     position = models.CharField(max_length=100, verbose_name="Должность")
     department = models.CharField(max_length=100, blank=True, verbose_name="Отдел")
-    # Для мастеров можно добавить специализацию
     is_active_worker = models.BooleanField(
         default=True, verbose_name="Доступен для заявок"
     )

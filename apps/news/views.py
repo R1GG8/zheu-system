@@ -11,5 +11,5 @@ class NewsViewSet(viewsets.ModelViewSet):
         if self.action in ["list", "retrieve"]:
             return [
                 permissions.AllowAny()
-            ]  # Новости могут видеть даже неавторизованные (по желанию)
+            ]  # Новости могут видеть даже неавторизованные
         return [permissions.IsAdminUser()]  # Создавать может только персонал

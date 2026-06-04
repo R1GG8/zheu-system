@@ -3,7 +3,6 @@ from .models import News
 
 
 class NewsSerializer(serializers.ModelSerializer):
-    # Добавим обработку автора, чтобы не было ошибки, если автор не указан
     author_name = serializers.ReadOnlyField(
         source="author.full_name", default="Администрация"
     )

@@ -19,7 +19,7 @@ class EmailOrUsernameModelBackend(ModelBackend):
         except UserModel.DoesNotExist:
             return None
         except UserModel.MultipleObjectsReturned:
-            # На случай, если каким-то чудом нашлось несколько (не должно быть при unique=True)
+            # На случай, если каким-то чудом нашлось несколько
             return (
                 UserModel.objects.filter(Q(username=username) | Q(email=username))
                 .order_by("id")

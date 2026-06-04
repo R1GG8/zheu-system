@@ -9,7 +9,6 @@ class ApplicationAttachmentSerializer(serializers.ModelSerializer):
         fields = ["id", "file", "uploaded_at"]
 
 
-# 1. Создаем сериализатор для истории статусов
 class ApplicationStatusHistorySerializer(serializers.ModelSerializer):
     class Meta:
         model = ApplicationStatusHistory
@@ -25,7 +24,6 @@ class ApplicationSerializer(serializers.ModelSerializer):
         source="get_service_type_display", read_only=True
     )
 
-    # 2. Вкладываем историю в основную заявку
     status_history = ApplicationStatusHistorySerializer(many=True, read_only=True)
 
     class Meta:
@@ -46,7 +44,7 @@ class ApplicationSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
             "attachments",
-            "status_history",  # <-- Добавили поле в API!
+            "status_history",  
         ]
         read_only_fields = ["number", "creator", "status", "created_at", "updated_at"]
 

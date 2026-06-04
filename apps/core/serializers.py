@@ -4,14 +4,12 @@ from .models import EmployeeProfile, ResidentProfile, User
 
 
 class UserMinimalSerializer(serializers.ModelSerializer):
-    # Достаем должность (Сантехник / Электрик) из связанного профиля EmployeeProfile
     position = serializers.CharField(
         source="employee_profile.position", read_only=True, default="Мастер"
     )
 
     class Meta:
         model = User
-        # Добавили 'position' в список полей
         fields = ["id", "username", "full_name", "role", "position"]
 
 
@@ -20,7 +18,6 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     def get_token(cls, user):
         token = super().get_token(user)
 
-        # Добавляем кастомные поля в payload JWT-токена
         token["role"] = user.role
         token["full_name"] = user.full_name or user.username
         token["username"] = user.username

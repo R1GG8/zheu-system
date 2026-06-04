@@ -26,5 +26,4 @@ def log_status_change(sender, instance, created, **kwargs):
             application=instance,
             from_status=old_status,
             to_status=instance.status,
-            # Примечание: changed_by лучше заполнять в ViewSet, так как в сигнале нет доступа к request
         )

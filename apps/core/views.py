@@ -27,6 +27,5 @@ class UserProfileView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request):
-        # Отдает профиль текущего запрашивающего пользователя
         serializer = UserProfileSerializer(request.user)
         return Response(serializer.data)

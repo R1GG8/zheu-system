@@ -23,7 +23,6 @@ class Application(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     number = models.CharField(max_length=20, unique=True, verbose_name="Номер заявки")
 
-    # Кто создал (Житель)
     creator = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -32,7 +31,6 @@ class Application(models.Model):
         verbose_name="Заявитель",
     )
 
-    # Кто выполняет (Мастер)
     master = models.ForeignKey(
         User,
         on_delete=models.SET_NULL,
@@ -68,9 +66,7 @@ class Application(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.number:
-            # Получаем текущее время прямо сейчас
             now = timezone.now()
-            # Генерируем номер в формате: ГГГГ-ММ-РАНДОМ (например, 2026-05-1234)
             random_part = random.randint(100, 999)
             self.number = f"{now.year}-{now.month:02d}-{now.day}--{random_part}"
 

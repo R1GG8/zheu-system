@@ -6,8 +6,8 @@ from .models import User, ResidentProfile, EmployeeProfile, Role
 @receiver(pre_save, sender=User)
 def handle_user_pre_save(sender, instance, **kwargs):
     """
-    Выполняется ДО сохранения пользователя.
-    Идеальное место для изменения полей самого User.
+    Выполняется до сохранения пользователя.
+    Место для изменения полей самого User.
     """
     if instance.is_superuser and instance.role != Role.ADMIN:
         instance.role = Role.ADMIN
@@ -16,7 +16,7 @@ def handle_user_pre_save(sender, instance, **kwargs):
 @receiver(post_save, sender=User)
 def handle_user_profile_sync(sender, instance, created, **kwargs):
     """
-    Выполняется ПОСЛЕ сохранения пользователя.
+    Выполняется после сохранения пользователя.
     Создает нужный профиль или обновляет существующий.
     """
     if instance.role == Role.RESIDENT:
