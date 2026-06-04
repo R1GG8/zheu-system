@@ -10,7 +10,6 @@ from core.models import User
 
 
 def run_test():
-    # Найди своего пользователя (админа)
     user = User.objects.filter(is_superuser=True).first()
 
     if not user:
@@ -19,9 +18,6 @@ def run_test():
 
     print(f"Проверка связи для пользователя: {user.username}")
 
-    # Пытаемся отправить "пустое" уведомление.
-    # Оно выдаст ошибку, если ключ неверный,
-    # или просто напишет "успешно отправлено 0", если нет токенов.
     try:
         send_push_notification(
             user=user,
